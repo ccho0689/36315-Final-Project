@@ -1,1 +1,339 @@
+---
+title: "Understanding Spotify User Behavior Across Different Factors"
+author: "Alyssa Back, Catherine Cho, Iris Ta"
+date: 2026-04-18
+format: html
+---
+# Motivation:
+
+
+Spotify is a global music streaming platform that enables users to create playlists, discover new songs, and receive personalized recommendations based on their listening behavior. With a large and diverse user base, understanding how users interact with the platform is important for improving user experience and increasing long-term retention.
+
+This project investigates how user behavior, advertising interactions, and user profiles relate to engagement, satisfaction, and subscription retention on Spotify. In particular, we analyze how listening behavior, ad-related activity, and user characteristics influence subscription status and music recommendation ratings.
+
+Our analysis shows that basic engagement metrics such as listening hours and skip rates do not strongly differentiate between active and inactive users. Similarly, advertisement interactions and ad-to-subscription conversions show little to no meaningful association with long-term retention or engagement levels. Finally, music recommendation ratings remain consistently high across user profiles defined by subscription type and genre, with minimal variation in average ratings or in the likelihood of giving high ratings.
+
+Overall, these findings suggest that no single behavioral or demographic factor strongly explains user retention or satisfaction in this dataset. Instead, user engagement patterns appear relatively uniform across groups, indicating that retention is likely influenced by a more complex combination of factors than those captured in this analysis. This highlights the need for more nuanced modeling approaches when studying user behavior on music streaming platforms.
+
+
+
+# Dataset Overview:
+
+We obtained our dataset through Kaggle: 
+https://www.kaggle.com/datasets/sahilislam007/spotify-user-behavior-and-pattern
+
+This analysis draws from a synthetic dataset of 50,000 observations. Each row represents a Spotify user across 18 variables spanning demographics, subscription behavior, and advertisement interactions, to help us investigate factors that shape long term user engagement and retention.
+
+Although the dataset is synthetically generated, it is designed to reflect the patterns of Spotify users in real life. 
+
+**User_id:** Unique identifier assigned to each user in the dataset.
+
+**Country:** Country where the user is located.
+
+**Age:** Age of the user.
+
+**Signup_date:** The date when the user signed up for the platform.
+
+**Subscription_type:** Type of subscription used by the user. Examples may include: Free Premium Family Student
+
+**Subscription_status:** Indicates whether the user currently has an active or inactive subscription.
+
+**Months_inactive:** Number of months the user has been inactive on the platform.
+
+**Inactive_3_months_flag:** Binary indicator showing whether the user has been inactive for 3 months or more. 1 = Inactive for 3+ months 0
+
+**Ad_interaction:** Indicates whether the user has interacted with advertisements on the platform.
+
+**Ad_conversion_to_subscription:** Indicates whether an advertisement resulted in the user converting to a paid subscription.
+
+**Music_suggestion_rating_1_to_5:** User rating (1–5 scale) for the platform's music recommendation system. 1 = Very poor recommendations 5 = Excellent recommendations
+
+**Avg_listening_hours_per_week:** Average number of hours the user spends listening to music per week.
+
+**Favorite_genre:** The music genre most frequently listened to by the user. Examples may include: Pop Rock Hip-Hop Electronic Jazz Classical
+
+**Most_liked_feature:** The feature that the user likes the most on the platform. Examples: Personalized playlists Discover weekly Offline downloads Podcasts Social sharing
+
+**Desired_future_feature:** Feature the user would like to see added or improved in the future.
+
+**Primary_device:** Main device used to access the music platform. Examples: Mobile Desktop Tablet Smart Speaker
+
+**Playlists_created:** Number of playlists created by the user.
+
+**Avg_skips_per_day:** Average number of songs skipped by the user per day. Higher values may indicate: Low engagement with recommendations Exploration behavior
+
+Prior to any analysis, we checked the data to see if there were any missing values. Since it is synthetic data, we  did not find any. We did transform some variables to do various types of graphs.
+
+
+# Research Questions: 
+
+Our three research questions are as follows:
+
+1. What behavioral patterns (such as skips and listening hours) predict subscription cancellation, and what do these patterns reveal about user disengagement?
+
+Understanding these behaviors is important because identifying early signs of disengagement can help Spotify intervene before users cancel their subscriptions, improving retention.
+
+2. Does ad interaction correlate with long-term activity, and how effective are ads in maintaining user engagement?
+
+This question matters because ads are a key revenue stream for Spotify, and understanding their impact on retention can inform more effective advertising strategies.
+
+3. What user profiles (subscription type and preferred genre) are associated with differences in music recommendation ratings?
+
+This is important because identifying which users receive the most accurate recommendations can help improve Spotify’s recommendation algorithms and personalize the user experience.
+
+Together, these questions explore how behavioral patterns, advertising interactions, and user characteristics influence engagement and satisfaction on the platform. By examining these relationships, we aim to identify key drivers of user retention and recommendation quality, providing insights that can guide improvements to Spotify’s features and overall user experience.
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# PUT YOUR CODE AND PLOT HERE
+library(tidyverse)
+rd <- read_csv("~/Downloads/spotify.csv", show_col_types = FALSE)
+```
+
+
+# Question 1: What behavioral patterns (such as skips and listening hours) predict subscription cancellation, and what do these patterns reveal about user disengagement?
+
+To answer Research Question 1, we examine how listening time differs between users who remain subscribed and those who cancel their subscription. Since listening time reflects overall platform engagement, comparing its distribution across these groups provide insight into whether engagement intensity is associated with user retention.
+
+
+```{r, echo=FALSE}
+spotify_colors <- c("Active" = "#39FF14", "Inactive" = "#111111")
+ggplot(rd, aes(x = subscription_status, y = avg_listening_hours_per_week, fill = subscription_status)) +
+  geom_boxplot() +
+  scale_fill_manual(values = spotify_colors) +
+  labs(
+    title = "Listening Hours vs Subscription Status",
+    x = "Subscription Status",
+    y = "Average Listening Hours per Week"
+  ) 
+```
+
+
+The boxplot shows that the distribution of average listening hours per week is very similar between active and inactive users. The medians are close, and the interquartile ranges overlap significantly, indicating little difference in listening behavior between the two groups. 
+
+This suggests that listening time alone is not a strong indicator of whether a user will cancel their subscription, and that other factors likely play a more important role in predicting user retention.
+
+
+To further address Research Question 1, we examine another key behavioral metric: the average number of skips per day. Skipping behavior reflects user satisfaction and content relevance, as higher skip rates may indicate that recommended tracks are not aligning with user preferences.
+
+
+We visualize this relationship using a histogram of average skips per day grouped by subscription status. This plot highlights differences in central tendency, variability, and extreme values, allowing for a direct comparison of engagement patterns between active and inactive users.
+
+```{r, echo=FALSE}
+spotify_colors <- c("Active" = "#39FF14", "Inactive" = "#111111")
+rd$subscription_status <- recode(rd$subscription_status,
+                                 "active" = "Active",
+                                 "inactive" = "Inactive")
+ggplot(rd, aes(x = avg_skips_per_day, fill = subscription_status)) +
+  geom_histogram(alpha = 0.6, bins = 30, position = "identity") +
+  scale_fill_manual(values = spotify_colors) +
+  labs(
+    title = "Average Skips per Day vs Subscription Status",
+    x = "Average Skips per Day",
+    y= "Number of Users",
+    fill = "Status"
+  )
+```
+
+From the distribution of average skips per day, we observe that both active and inactive users exhibit very similar patterns. In both groups, the data is centered around approximately 10–12 skips per day, with relatively symmetric distributions and no strong evidence of skewness. While active users show a slightly wider spread and a few higher-end outliers, these differences are minor and do not substantially distinguish the two groups.
+
+This suggests that skip behavior, like listening time, is not a strong standalone predictor of subscription cancellation. Despite being an intuitive measure of dissatisfaction, skip rates do not differ meaningfully between retained and churned users.
+
+Taken together with the previous analysis on listening hours, these results indicate that basic engagement metrics alone are insufficient to explain user churn. Instead, subscription decisions are likely influenced by a more complex combination of factors, such as user preferences, platform experience, and external considerations.
+
+
+
+# Question 2: Does ad interaction correlate with long-term activity, and how effective are ads in maintaining user engagement?
+
+
+To address Research Question 2, we examine whether user interaction with advertisements is associated with long-term retention, measured by months of inactivity. If advertisements are effective in maintaining engagement, we would expect users who interact with ads to exhibit lower inactivity levels. We look at this relationship throuhg a violin plot. 
+
+
+```{r, echo=FALSE}
+spotify_colors <- c("Active" = "#39FF14", "Inactive" = "#111111")
+spotify_ads <- c("Yes" = "#39FF14", "No" = "#111111")
+rd <- rd %>%
+  mutate(
+    inactive_3_months_flag = factor(inactive_3_months_flag, labels = c("Active", "Inactive")),
+    ad_interaction = factor(ad_interaction, labels = c("No", "Yes")),
+    ad_conversion_to_subscription = factor(ad_conversion_to_subscription, labels = c("No", "Yes"))
+  )
+ggplot(rd, aes(x = ad_interaction, y = months_inactive, fill = ad_interaction)) +
+  geom_violin(trim = FALSE, alpha = 0.7) +
+  geom_boxplot(width = 0.1, fill = "white") +
+  scale_fill_manual(values = spotify_ads) +
+  labs(
+    title = "Distribution of Inactivity by Ad Interaction (Yes or No)",
+    x = "Ad Interaction (Yes or No)",
+    y = "Months Inactive"
+  )
+```
+
+
+The distribution of inactivity months for users who interacted with advertisements and those who did not shows nearly identical patterns. Both groups display a heavily right-skewed distribution, with most users concentrated between zero and two months of inactivity and a small number of outliers extending to higher values. The median inactivity for both groups is approximately one month, indicating no meaningful difference in central tendency.
+
+This suggests that ad interaction is not strongly associated with improved long-term retention. Despite the expectation that engaging with advertisements might reflect higher user involvement, the data indicates that users who interact with ads do not remain active significantly longer than those who do not.
+
+Overall, these findings imply that while Spotify’s advertisements may successfully capture user attention, they do not translate into sustained engagement. This highlights a potential limitation in the effectiveness of current advertising strategies and suggests that improvements in ad relevance or targeting may be necessary to meaningfully impact user retention. This aligns with earlier findings that basic engagement metrics alone do not strongly predict retention.
+
+
+
+
+```{r, echo=FALSE}
+t.test(avg_listening_hours_per_week ~ ad_conversion_to_subscription, data = rd)
+```
+
+
+To formally test whether ad conversion influences engagement, we use a Welch two-sample t-test comparing average weekly listening hours between users who converted to a paid subscription through an advertisement and those who did not. A Welch t-test is appropriate here because we are comparing means across two independent groups and do not assume equal variance between them.
+
+The results show no statistically significant difference (t = 0.268, df = 5207.7, p = 0.789). Because the p-value far exceeds our significance threshold of 0.05 — the conventional cutoff below which we would consider a result unlikely to be due to chance alone — we fail to reject the null hypothesis that the two group means are equal. In practical terms, users who subscribed through an ad listened to an average of 9.97 hours per week,
+compared to 9.99 hours for those who did not — a difference of less than two minutes. 
+The 95% confidence interval for this difference (-0.107, 0.141) includes zero, further confirming that any difference is negligible.
+
+To further address Research Question 2, we examine whether converting through a Spotify advertisement is associated with long-term retention by comparing the proportion of active and inactive users across conversion groups through a bar chart. 
+
+
+
+```{r, echo=FALSE}
+rd <- rd %>%
+  mutate(
+    ad_conversion_to_subscription = factor(ad_conversion_to_subscription,
+                                           levels = c("No", "Yes")),
+    
+    inactive_3_months_flag = as.character(inactive_3_months_flag),
+    
+    inactive_3_months_flag = case_when(
+      inactive_3_months_flag %in% c("1", "TRUE", "true", "Inactive") ~ "Inactive",
+      inactive_3_months_flag %in% c("0", "FALSE", "false", "Active") ~ "Active",
+      TRUE ~ NA_character_
+    ),
+    
+    inactive_3_months_flag = factor(inactive_3_months_flag,
+                                     levels = c("Active", "Inactive"))
+  )
+
+spotify_colors <- c("Active" = "#1DB954", "Inactive" = "#191414")
+
+ggplot(rd, aes(x = ad_conversion_to_subscription,
+               fill = inactive_3_months_flag)) +
+  geom_bar(position = "fill") +
+  scale_fill_manual(values = spotify_colors) +
+  labs(
+    title = "Ad Conversion vs Long-Term Retention",
+    x = "Converted from Ad (Yes or No)",
+    y = "Proportion of Users",
+    fill = "User Status"
+  ) 
+
+```
+
+
+
+
+
+The stacked bar chart shows that both groups—users who converted through an advertisement and those who did not—have nearly identical proportions, with approximately 80% active users and 20% inactive users in each group. This indicates that subscription status is largely independent of whether a user converted via an ad.
+
+This suggests that ad conversion does not meaningfully improve long-term retention. Users who subscribe through advertisements are no more likely to remain active than those who subscribe through other means, indicating that ad-driven conversions do not produce more engaged users.
+
+Overall, this finding reinforces earlier results that advertisement-related interactions have limited impact on sustained user engagement. While ads may be effective in acquiring new subscribers, they do not appear to influence whether those users remain active over time.
+
+
+
+
+# Question 3: What user profiles (subscription type and preferred genre) are associated with differences in music recommendation ratings?
+
+
+
+To investigate whether certain user profiles are associated with differences in music recommendation ratings, we examine how average ratings vary across combinations of subscription type and favorite genre.
+
+```{r, echo=FALSE}
+
+rd %>%
+  group_by(favorite_genre, subscription_type) %>%
+  summarise(
+    avg_rating = mean(music_suggestion_rating_1_to_5, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  ggplot(aes(x = subscription_type,
+             y = reorder(favorite_genre, avg_rating),
+             fill = avg_rating)) +
+  geom_tile(color = "white", linewidth = 0.5) +
+  geom_text(aes(label = round(avg_rating, 2)),
+            size = 3.5,
+            color = "#111111") +
+  scale_fill_gradient(low = "#111111", high = "#39FF14") +
+  labs(
+    title = "Average Rating by Favorite Genre and Subscription Type",
+    x = "Subscription Type",
+    y = "Favorite Genre",
+    fill = "Average rating"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    panel.grid = element_blank(),
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+```
+
+
+
+
+The heatmap shows that average recommendation ratings are highly consistent across all combinations of subscription type and favorite genre, with values generally clustered around 3.6–3.7. While there are minor fluctuations between groups, no genre or subscription category stands out as consistently receiving higher or lower ratings.
+
+Overall, these results suggest that perceived recommendation quality is relatively stable across user profiles. This indicates that neither subscription type nor genre preference is a strong differentiator of user satisfaction in this dataset.
+
+To further examine whether certain user groups are more likely to give high ratings
+(defined as 4 or above), we construct a mosaic plot comparing subscription type and rating category.
+
+```{r, echo=FALSE, messages=FALSE, warnings=FALSE}
+rd <- rd %>%
+  mutate(high_rating = ifelse(music_suggestion_rating_1_to_5 >= 4,
+                              "High (4–5)", "Low (<4)"))
+tab <- table(rd$subscription_type, rd$high_rating)
+
+mosaicplot(tab,
+           shade = TRUE,
+           main = "Subscription Type vs High Ratings",
+           xlab = "Subscription Type",
+           ylab = "Rating Category")
+
+```
+
+
+
+
+The mosaic plot shows little deviation from expected counts under independence, and the absence of strong Pearson residual shading suggests no evidence of an association between subscription type and rating category. 
+
+Taken together with the heatmap results, this indicates that music recommendation ratings remain relatively uniform across user profiles, with no strong evidence that subscription type or genre significantly influences perceived recommendation quality.
+
+
+
+# Conclusion
+
+
+This study explored three dimensions of Spotify user behavior: the behavioral patterns that predict subscription cancellation, the relationship between advertising and long-term retention, and the user profiles associated with the highest music suggestion ratings.
+
+Taken together, our three analyses paint a consistent picture: no single behavioral or demographic factor strongly explains user retention or satisfaction in this dataset.
+
+For Research Question 1, both listening hours and skip rates were nearly identical between active and inactive users, suggesting that the platform engagement signals most readily available to Spotify do not reliably distinguish users who are about to churn from those who will stay. This is a meaningful finding — it implies that a simple threshold rule like "flag users who skip a lot" would not be an effective retention strategy.
+
+For Research Question 2, neither ad interaction nor ad-driven subscription conversion was associated with measurable differences in long-term activity. Users who clicked on ads and converted were no more active — and listened
+to no more music — than users who found the platform through other means. This suggests that Spotify's advertising may be reaching users who would have engaged at similar levels regardless, rather than selectively attracting high-engagement users.
+
+For Research Question 3, music recommendation ratings clustered tightly between 3.6 and 3.7 across every combination of subscription type and favorite genre. Neither the mosaic plot nor the heatmap revealed any meaningful variation, indicating that perceived recommendation quality is uniform across user profiles rather than benefiting or disadvantaging particular groups.
+
+Collectively, these findings suggest that retention and satisfaction on Spotify are shaped by a more complex combination of factors than basic behavioral metrics or demographic groupings can capture on their own. Because our dataset is synthetic, some of this uniformity may reflect the data generation process rather than true user behavior, and results should be interpreted with that limitation in mind.
+
+
+
+# Future Work
+
+Several important questions remain that could not be addressed within the scope of this project.
+
+First, while we examined listening hours and skip rates as standalone predictors of churn, we did not explore how these behaviors change over time for individual users. Sequential patterns — such as a gradual decline in listening hours over several weeks — may be far more predictive of cancellation than any single snapshot. Answering this would require time-series data and methods such as survival analysis or recurrent neural
+networks, which are beyond what was covered in this course.
+
+Second, our treatment of advertising was necessarily simplified. We could only observe whether a user interacted with an ad and whether they converted — not the type of ad, its frequency, its timing relative to signup, or whether users were exposed but did not click. A more rigorous causal analysis of ad effectiveness would require either randomized experiment data or an instrumental variable approach to address the selection problem, neither of which is feasible with this dataset.
+
+Third, and most importantly, all of our findings are drawn from a synthetic dataset designed to mimic Spotify user behavior. Real user data would contain more noise, more extreme outliers, and more genuine variation between groups. Future work using a real dataset — even an anonymized sample — would allow for more robust and generalizable conclusions. It would also make it possible to validate whether the uniform patterns observed here reflect true user behavior or are an artifact of how the synthetic data was generated.
 
