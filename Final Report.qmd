@@ -2,7 +2,10 @@
 title: "Understanding Spotify User Behavior Across Different Factors"
 author: "Alyssa Back, Catherine Cho, Iris Ta"
 date: 2026-04-18
-format: html
+format: 
+  html:
+    embed-resources: true
+
 ---
 # Motivation:
 
